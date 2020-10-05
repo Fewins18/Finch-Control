@@ -6,4 +6,13 @@
     <RootNamespace>Talent_Show</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Reference Include="FinchAPI">
+      <HintPath>..\..\..\..\Documents\CIT 110\FinchAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="HidSharp">
+      <HintPath>..\..\..\..\Documents\CIT 110\HidSharp.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
