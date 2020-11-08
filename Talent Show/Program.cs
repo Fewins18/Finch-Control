@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Net.Http.Headers;
 using FinchAPI;
+using System.IO;
 
 namespace Finch_Control
 {
@@ -47,10 +48,182 @@ namespace Finch_Control
         {
             SetTheme();
 
+            DisplayLoginRegister();
+
             DisplayWelcomeScreen();
             DisplayMenuScreen();
             DisplayClosingScreen();
         }
+
+        #region LOGIN
+        /// <summary>
+        /// ********************
+        /// *  Login Register  *
+        /// ********************
+        /// </summary>
+        static void DisplayLoginRegister()
+        {
+            DisplayScreenHeader("Login/Register");
+
+            Console.WriteLine("\tAre you a registered user? [yes | no]");
+            if (Console.ReadLine().ToLower() == "yes")
+            {
+                DisplayLogin();
+            }
+            else
+            {
+                DisplayRegisterUser();
+                DisplayLogin();
+            }
+        }
+
+
+        /// <summary>
+        /// *********************
+        /// *  Register Screen  *
+        /// *********************
+        /// </summary>
+        static void DisplayRegisterUser()
+        {
+            string userName;
+            string password;
+
+            DisplayScreenHeader("Register");
+
+            Console.WriteLine("\tEnter your username:");
+            userName = Console.ReadLine();
+            Console.WriteLine("\tEnter your password:");
+            password = Console.ReadLine();
+
+            WriteLoginInfoData(userName, password);
+
+            Console.WriteLine();
+            Console.WriteLine("\tThe information that has been entered will now be saved for later.");
+            Console.WriteLine($"\tUsername: {userName}");
+            Console.WriteLine($"\tPassword: {password}");
+
+            DisplayContinuePrompt();
+        }
+
+        /// <summary>
+        /// write login info into the file
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="password"></param>
+        static void WriteLoginInfoData(string userName, string password)
+        {
+            string datapath = @"Data/Data.txt";
+            string loginInfoText;
+
+            loginInfoText = userName + "," + password;
+
+            File.AppendAllText(datapath, loginInfoText);
+        }
+
+        /// <summary>
+        /// ******************
+        /// *  Login Screen  *
+        /// ******************
+        /// </summary>
+        static void DisplayLogin()
+        {
+            string userName;
+            string password;
+            bool validLogin;
+
+            do
+            {
+                DisplayScreenHeader("Login");
+
+                Console.WriteLine();
+                Console.WriteLine("\tEnter your username:");
+                userName = Console.ReadLine();
+                Console.WriteLine("\tEnter your password:");
+                password = Console.ReadLine();
+
+                validLogin = IsValidLoginInfo(userName, password);
+
+                Console.WriteLine();
+                if (validLogin)
+                {
+                    Console.WriteLine("\tYou are now logged in.");
+                }
+                else
+                {
+                    Console.WriteLine("\tYour password or username is incorrect");
+                    Console.WriteLine("Please try again");
+                }
+                DisplayContinuePrompt();
+            } while (!validLogin);
+        }
+
+        /// <summary>
+        /// Confirms the use of current password
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <param name="password"></param>
+        /// <returns>true if valid user</returns>
+        static bool IsValidLoginInfo(string userName, string password)
+        {
+            List<(string userName, string password)> registeredUserLoginInfo = new List<(string userName, string password)>();
+            bool validUser = false;
+
+            registeredUserLoginInfo = ReadLoginInfoData();
+
+            //
+            // Run through the list using tuples
+            //
+            foreach ((string userName, string password) userLoginInfo in registeredUserLoginInfo)
+            {
+                if ((userLoginInfo.userName == userName) && (userLoginInfo.password == password))
+                {
+                    validUser = true;
+                    break;
+                }
+            }
+
+            return validUser;
+        }
+
+
+        /// <summary>
+        /// reading from the data file
+        /// </summary>
+        /// <returns>list of a tuple</returns>
+        static List<(string userName, string password)> ReadLoginInfoData()
+        {
+            string datapath = @"Data/Data.txt";
+
+            string[] loginInfoArray;
+            (string userName, string password) loginInfoTuple;
+
+            List<(string userName, string password)> registeredUserLoginInfo = new List<(string userName, string)>();
+
+            loginInfoArray = File.ReadAllLines(datapath);
+
+            //
+            // run through array 
+            // split into a tuple
+            // add the tuple into the list
+            //
+            foreach (string loginInfoText in loginInfoArray)
+            {
+                //
+                // use a split to keep the username and password apart
+                //
+                loginInfoArray = loginInfoText.Split(',');
+
+                loginInfoTuple.userName = loginInfoArray[0];
+                loginInfoTuple.password = loginInfoArray[1];
+
+                registeredUserLoginInfo.Add(loginInfoTuple);
+            }
+
+            return registeredUserLoginInfo;
+        }
+
+        #endregion
+
         ///  <summary>
         ///  setup Console theme
         ///  </summary>
@@ -133,7 +306,7 @@ namespace Finch_Control
             } while (!quitApplication);
         }
 
-        #region  Alarm System
+        #region  ALARM SYSTEM
 
         ///  <summary>
         ///  ***********************
@@ -645,7 +818,7 @@ namespace Finch_Control
 
         #endregion
 
-        #region User Programming
+        #region USER PROGRAMMING
         ///  <summary>
         ///  ***************************
         ///  *  User Programming Menu  *
@@ -742,7 +915,7 @@ namespace Finch_Control
 
             DisplayScreenHeader("Excute Screen");
 
-            Console.WriteLine("The Finch is ready to go");
+            Console.WriteLine("\tThe Finch is ready to go");
             DisplayContinuePrompt();
 
             foreach(Command command in commands)
@@ -858,7 +1031,7 @@ namespace Finch_Control
 
             while (command != Command.done)
             {
-                Console.Write("\tEnter Command");
+                Console.Write("\tEnter Command: ");
 
                 if (Enum.TryParse(Console.ReadLine().ToLower(), out command))
                 {
@@ -913,7 +1086,7 @@ namespace Finch_Control
 
             do
             {
-                Console.Write("\tEnter LED Brightness [1-255]");
+                Console.Write("\tEnter LED Brightness [1-255]:");
                 userResponse = Console.ReadLine();
                 int.TryParse(userResponse, out imformation.ledBrightness);
                 validResponse = false;
@@ -934,7 +1107,7 @@ namespace Finch_Control
 
             do
             {
-                Console.Write("\tEnter Wait in Seconds");
+                Console.Write("\tEnter Wait in Seconds:");
                 userResponse = Console.ReadLine();
                 double.TryParse(userResponse, out imformation.waitSeconds);
                 validResponse = false;
